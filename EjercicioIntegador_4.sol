@@ -180,19 +180,18 @@ contract EjercicioCuatro {
     function finalizarSubasta(bytes32 _auctionId) public {
                 
         if(!subastas[_auctionId].active) revert SubastaInexistente();
-        //if(subastas[_auctionId].creator == address(0)) revert SubastaInexistente();
         
         if(block.timestamp <= subastas[_auctionId].dateEnd ) revert SubastaEnMarcha();
         
-        payable(subastas[_auctionId].highBidder).transfer(1 ether);  //1 ether al ganador
+        amountPerBidder[_auctionId][subastas[_auctionId].highBidder] += 1 ether; //1 ether al ganador
 
         subastas[_auctionId].active = false;  //declarar subasta inactiva
         
-        delete subastasActivas[subastas[_auctionId].idInArray];  //eliminar en el array de subastas activas
+        subastasActivas[subastas[_auctionId].idInArray] = subastasActivas[subastasActivas.length - 1];
+        subastasActivas.pop();
+        
                 
         emit SubastaFinalizada(subastas[_auctionId].highBidder, subastas[_auctionId].highOffer);
-
-        // delete subastas[_auctionId];
     }
 
 //  * - El método 'recuperarOferta(bytes32 _auctionId)':
@@ -203,8 +202,6 @@ contract EjercicioCuatro {
     function recuperarOferta(bytes32 _auctionId) public payable returns(uint256) {
         
         if(subastas[_auctionId].active) revert SubastaEnMarcha();
-
-        //uint256 bal = address(msg.sender).balance;
         payable(msg.sender).transfer(amountPerBidder[_auctionId][msg.sender]);
 
         return address(msg.sender).balance;
